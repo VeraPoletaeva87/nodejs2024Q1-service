@@ -24,22 +24,22 @@ export class UserController {
   }
 
   @Get(':id')
-  findOne(@Param('id') prodId: string): Promise<User> {
+  findOne(@Param('id') prodId: string): User {
     return this.userService.findOne(prodId);
   }
 
   @Post()
-  create(@Body() dto: CreateUserDTO): Promise<User> {
+  create(@Body() dto: CreateUserDTO): User {
     return this.userService.create(dto);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdatePasswordDto): Promise<User> {
+  update(@Param('id') id: string, @Body() dto: UpdatePasswordDto): User {
     return this.userService.update(id, dto);
   }
 
   @Delete(':id')
-  delete(@Param('id') id: string): Promise<User> {
+  delete(@Param('id') id: string) {
     return this.userService.delete(id);
   }
 }
