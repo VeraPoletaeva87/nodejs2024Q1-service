@@ -1,3 +1,4 @@
+import { Track } from 'src/tracks/track.schema';
 import { User } from 'src/users/user-schema';
 
 export const data: Data = {
@@ -11,8 +12,18 @@ export const data: Data = {
       updatedAt: 1709852705232,
     },
   ],
+  tracks: [
+    {
+      id: '1',
+      name: 'I surrender',
+      artistId: 'artist_id',
+      albumId: 'album_id',
+      duration: 3,
+    },
+  ],
 };
 
 export interface Data {
   users: User[];
+  tracks: Track[];
 }

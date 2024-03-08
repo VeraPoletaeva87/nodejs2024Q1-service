@@ -55,7 +55,6 @@ export class UserService {
     this.validateId(id);
 
     const index = data.users.findIndex((item) => item.id === id);
-    console.log('id', id, 'index', index);
     if (index === -1) {
       throw new NotFoundException(`Record with id ${id} does not exist`);
     }
