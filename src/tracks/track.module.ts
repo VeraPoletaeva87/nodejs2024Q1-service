@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 
-import { UserController } from './track.controller';
+import { TrackController } from './track.controller';
 import { TrackService } from './tracks.service';
 
 @Module({
   imports: [],
-  controllers: [UserController],
+  controllers: [TrackController],
   providers: [TrackService],
 })
 export class TrackModule {}

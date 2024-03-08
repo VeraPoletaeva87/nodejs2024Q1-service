@@ -3,43 +3,43 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Param,
-  Patch,
   Post,
+  Put,
 } from '@nestjs/common';
 
 import { CreateUserDTO, UpdatePasswordDto } from './users-models';
 import type { User } from './user-schema';
 import { UserService } from './users.service';
 
-@Controller('users')
+@Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get()
-  async findAll(): Promise<User[]> {
-    const response = await this.userService.findAll();
-    console.log(response);
-    return response;
+  getAll(): User[] {
+    return this.userService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') prodId: string): User {
-    return this.userService.findOne(prodId);
+  @Get(':userId')
+  getById(@Param('userId') userId: string): User {
+    return this.userService.findOne(userId);
   }
 
   @Post()
-  create(@Body() dto: CreateUserDTO): User {
-    return this.userService.create(dto);
+  create(@Body() createUserDto: CreateUserDTO): User {
+    return this.userService.create(createUserDto);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdatePasswordDto): User {
-    return this.userService.update(id, dto);
+  @Put(':id')
+  update(@Param('id') id: string, @Body() updateUserDto: UpdatePasswordDto) {
+    return this.userService.update(id, updateUserDto);
   }
 
   @Delete(':id')
-  delete(@Param('id') id: string) {
+  @HttpCode(204)
+  remove(@Param('id') id: string) {
     return this.userService.delete(id);
   }
 }

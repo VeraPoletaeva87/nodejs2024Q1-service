@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 
 import { Track } from './track.schema';
-import { data } from 'src/data/database';
+import { data } from 'src/data/data';
 import { v4 as uuidv4, validate } from 'uuid';
 import { CreateTrackDTO } from './tracks-models';
 

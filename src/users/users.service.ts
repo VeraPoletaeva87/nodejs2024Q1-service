@@ -1,13 +1,12 @@
 import {
   BadRequestException,
-  HttpStatus,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 
 import type { CreateUserDTO, UpdatePasswordDto } from './users-models';
 import { User } from './user-schema';
-import { data } from 'src/data/database';
+import { data } from 'src/data/data';
 import { v4 as uuidv4, validate } from 'uuid';
 
 @Injectable()
@@ -20,7 +19,11 @@ export class UserService {
   }
 
   findAll(): User[] {
-    return data.users;
+    const users = data.users;
+    users.forEach((user) => {
+      delete user.password;
+    });
+    return users;
   }
 
   findOne(id: string): User {
@@ -39,6 +42,10 @@ export class UserService {
         'Request body does not contain required fields (login, password)',
       );
     }
+
+    if (typeof dto.login !== 'string' || typeof dto.password !== 'string') {
+      throw new BadRequestException('Login or password not string');
+    }
     const newUser = {
       id: uuidv4(),
       login: dto.login,
@@ -47,12 +54,25 @@ export class UserService {
       createdAt: new Date().getTime(),
       updatedAt: new Date().getTime(),
     };
+
     data.users.push(newUser);
+    delete newUser.password;
     return newUser;
   }
 
   update(id: string, dto: UpdatePasswordDto): User {
     this.validateId(id);
+    if (!dto.oldPassword || !dto.newPassword) {
+      throw new BadRequestException('Old password or new password is empty');
+    }
+    if (
+      typeof dto.oldPassword !== 'string' ||
+      typeof dto.newPassword !== 'string'
+    ) {
+      throw new BadRequestException(
+        'Old password or new password is not string',
+      );
+    }
 
     const index = data.users.findIndex((item) => item.id === id);
     if (index === -1) {
@@ -65,9 +85,10 @@ export class UserService {
     } else {
       throw new BadRequestException('oldPassword is wrong');
     }
-
+    const res = data.users[index];
+    delete res.password;
     // Return the updated user
-    return data.users[index];
+    return res;
   }
 
   delete(id: string) {
@@ -78,6 +99,6 @@ export class UserService {
     } else {
       throw new NotFoundException(`Record with id ${id} does not exist`);
     }
-    return HttpStatus.NO_CONTENT;
+    return;
   }
 }

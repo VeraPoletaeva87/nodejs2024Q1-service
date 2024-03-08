@@ -13,12 +13,12 @@ import type { Track } from './track.schema';
 import { TrackService } from './tracks.service';
 
 @Controller('tracks')
-export class UserController {
+export class TrackController {
   constructor(private readonly trackService: TrackService) {}
 
   @Get()
-  async findAll(): Promise<Track[]> {
-    const response = await this.trackService.findAll();
+  findAll(): Track[] {
+    const response = this.trackService.findAll();
     console.log(response);
     return response;
   }
