@@ -1,15 +1,12 @@
 import { IsNumber, IsString } from '@nestjs/class-validator';
 
-export class CreateTrackDTO {
+export class CreateAlbumDTO {
   @IsString()
   readonly name!: string;
 
   @IsNumber()
-  readonly duration!: number;
+  readonly year!: number;
 
   @IsString()
-  readonly artistId!: string;
-
-  @IsString()
-  readonly albumId!: string;
+  readonly artistId!: string | null;
 }

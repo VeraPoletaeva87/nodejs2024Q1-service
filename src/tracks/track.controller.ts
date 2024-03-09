@@ -3,23 +3,23 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Param,
-  Patch,
   Post,
+  Put,
 } from '@nestjs/common';
 
 import { CreateTrackDTO } from './tracks-models';
 import type { Track } from './track.schema';
 import { TrackService } from './tracks.service';
 
-@Controller('tracks')
+@Controller('track')
 export class TrackController {
   constructor(private readonly trackService: TrackService) {}
 
   @Get()
   findAll(): Track[] {
     const response = this.trackService.findAll();
-    console.log(response);
     return response;
   }
 
@@ -33,12 +33,13 @@ export class TrackController {
     return this.trackService.create(dto);
   }
 
-  @Patch(':id')
+  @Put(':id')
   update(@Param('id') id: string, @Body() dto: CreateTrackDTO): Track {
     return this.trackService.update(id, dto);
   }
 
   @Delete(':id')
+  @HttpCode(204)
   delete(@Param('id') id: string) {
     return this.trackService.delete(id);
   }

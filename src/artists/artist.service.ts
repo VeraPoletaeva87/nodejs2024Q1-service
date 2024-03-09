@@ -5,13 +5,13 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-import { Track } from './track.schema';
+import { Artist } from './artist.schema';
 import { data } from 'src/data/data';
 import { v4 as uuidv4, validate } from 'uuid';
-import { CreateTrackDTO } from './tracks-models';
+import { CreateArtistDTO } from './artist.models';
 
 @Injectable()
-export class TrackService {
+export class ArtistService {
   validateId(id: string) {
     const validId = validate(id);
     if (!validId) {
@@ -19,41 +19,39 @@ export class TrackService {
     }
   }
 
-  findAll(): Track[] {
-    return data.tracks;
+  findAll(): Artist[] {
+    return data.artists;
   }
 
-  findOne(id: string): Track {
+  findOne(id: string): Artist {
     this.validateId(id);
 
-    const item = data.tracks.find((item) => item.id === id);
+    const item = data.artists.find((item) => item.id === id);
     if (!item) {
       throw new NotFoundException(`Record with id ${id} does not exist`);
     }
     return item;
   }
 
-  create(dto: CreateTrackDTO): Track {
-    if (!dto.name || !dto.duration) {
+  create(dto: CreateArtistDTO): Artist {
+    if (!dto.name || !dto.grammy) {
       throw new BadRequestException(
         'Request body does not contain required fields (name, duration)',
       );
     }
-    const newTrack = {
+    const newArtist = {
       id: uuidv4(),
       name: dto.name,
-      artistId: dto.artistId,
-      albumId: dto.albumId,
-      duration: dto.duration,
+      grammy: dto.grammy,
     };
-    data.tracks.push(newTrack);
-    return newTrack;
+    data.artists.push(newArtist);
+    return newArtist;
   }
 
-  update(id: string, dto: CreateTrackDTO): Track {
+  update(id: string, dto: CreateArtistDTO): Artist {
     this.validateId(id);
 
-    if (!dto.name || !dto.duration) {
+    if (!dto.name || !dto.grammy) {
       throw new BadRequestException(
         'Request body does not contain required fields (name, duration)',
       );
@@ -63,20 +61,18 @@ export class TrackService {
     if (index === -1) {
       throw new NotFoundException(`Record with id ${id} does not exist`);
     }
-    data.tracks[index].name = dto.name;
-    data.tracks[index].duration = dto.duration;
-    data.tracks[index].artistId = dto.artistId;
-    data.tracks[index].albumId = dto.albumId;
+    data.artists[index].name = dto.name;
+    data.artists[index].grammy = dto.grammy;
 
     // Return the updated user
-    return data.tracks[index];
+    return data.artists[index];
   }
 
   delete(id: string) {
     this.validateId(id);
-    const index = data.tracks.findIndex((item) => item.id === id);
+    const index = data.artists.findIndex((item) => item.id === id);
     if (index !== -1) {
-      data.tracks.splice(index, 1);
+      data.artists.splice(index, 1);
     } else {
       throw new NotFoundException(`Record with id ${id} does not exist`);
     }
