@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  HttpException,
   HttpStatus,
   Injectable,
   NotFoundException,
@@ -7,8 +8,10 @@ import {
 
 import { Favorites } from './favorite.schema';
 import { data } from 'src/data/data';
-import { v4 as uuidv4, validate } from 'uuid';
-import { CreateFavDTO } from './favorite.models';
+import { validate } from 'uuid';
+import { Track } from 'src/tracks/track.schema';
+import { Album } from 'src/albums/album.schema';
+import { Artist } from 'src/artists/artist.schema';
 
 @Injectable()
 export class FavoritesService {
@@ -23,21 +26,25 @@ export class FavoritesService {
     return data.favorites;
   }
 
-  addTrack(id: string): Favorites {
+  addTrack(id: string): Track {
     this.validateId(id);
 
     const item = data.tracks.find((item) => item.id === id);
     if (!item) {
-      throw new NotFoundException(`Record with id ${id} does not exist`);
+      throw new HttpException(
+        'Record not found',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+      //throw new NotFoundException(`Record with id ${id} does not exist`);
     }
 
-    data.favorites.tracks.push(id);
-    return;
+    data.favorites.tracks.push(item);
+    return item;
   }
 
   deleteTrack(id: string) {
     this.validateId(id);
-    const index = data.favorites.tracks.findIndex((item) => item === id);
+    const index = data.favorites.tracks.findIndex((item) => item.id === id);
     if (index !== -1) {
       data.favorites.tracks.splice(index, 1);
     } else {
@@ -46,21 +53,24 @@ export class FavoritesService {
     return;
   }
 
-  addAlbum(id: string): Favorites {
+  addAlbum(id: string): Album {
     this.validateId(id);
 
     const item = data.albums.find((item) => item.id === id);
     if (!item) {
-      throw new NotFoundException(`Record with id ${id} does not exist`);
+      throw new HttpException(
+        'Record not found',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
     }
 
-    data.favorites.albums.push(id);
-    return;
+    data.favorites.albums.push(item);
+    return item;
   }
 
   deleteAlbum(id: string) {
     this.validateId(id);
-    const index = data.favorites.albums.findIndex((item) => item === id);
+    const index = data.favorites.albums.findIndex((item) => item.id === id);
     if (index !== -1) {
       data.favorites.albums.splice(index, 1);
     } else {
@@ -69,21 +79,24 @@ export class FavoritesService {
     return;
   }
 
-  addArtist(id: string): Favorites {
+  addArtist(id: string): Artist {
     this.validateId(id);
 
     const item = data.artists.find((item) => item.id === id);
     if (!item) {
-      throw new NotFoundException(`Record with id ${id} does not exist`);
+      throw new HttpException(
+        'Record not found',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
     }
 
-    data.favorites.artists.push(id);
-    return;
+    data.favorites.artists.push(item);
+    return item;
   }
 
   deleteArtist(id: string) {
     this.validateId(id);
-    const index = data.favorites.artists.findIndex((item) => item === id);
+    const index = data.favorites.artists.findIndex((item) => item.id === id);
     if (index !== -1) {
       data.favorites.artists.splice(index, 1);
     } else {

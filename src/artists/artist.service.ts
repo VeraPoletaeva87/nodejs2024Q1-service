@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  HttpException,
   HttpStatus,
   Injectable,
   NotFoundException,
@@ -27,8 +28,9 @@ export class ArtistService {
     this.validateId(id);
 
     const item = data.artists.find((item) => item.id === id);
-    if (!item) {
-      throw new NotFoundException(`Record with id ${id} does not exist`);
+    const index = data.artists.findIndex((item) => item.id === id);
+    if (index === -1) {
+      throw new HttpException('Record not found', HttpStatus.NOT_FOUND);
     }
     return item;
   }
@@ -51,21 +53,24 @@ export class ArtistService {
   update(id: string, dto: CreateArtistDTO): Artist {
     this.validateId(id);
 
+    const index = data.artists.findIndex((item) => item.id === id);
+    if (index === -1) {
+      throw new HttpException('Record not found', HttpStatus.NOT_FOUND);
+    }
+
     if (!dto.name || !dto.grammy) {
       throw new BadRequestException(
         'Request body does not contain required fields (name, duration)',
       );
     }
-
-    const index = data.users.findIndex((item) => item.id === id);
-    if (index === -1) {
-      throw new NotFoundException(`Record with id ${id} does not exist`);
+    console.log('DTO TYPES', dto);
+    if (typeof dto.name !== 'string' || typeof dto.grammy !== 'boolean') {
+      throw new BadRequestException('Request body fields have wrong type');
     }
     data.artists[index].name = dto.name;
     data.artists[index].grammy = dto.grammy;
-
-    // Return the updated user
-    return data.artists[index];
+    console.log('UPDATED');
+    return;
   }
 
   delete(id: string) {
@@ -73,6 +78,16 @@ export class ArtistService {
     const index = data.artists.findIndex((item) => item.id === id);
     if (index !== -1) {
       data.artists.splice(index, 1);
+      data.tracks.forEach((item) => {
+        if (item.artistId === id) {
+          item.artistId = null;
+        }
+      });
+      data.albums.forEach((item) => {
+        if (item.artistId === id) {
+          item.artistId = null;
+        }
+      });
     } else {
       throw new NotFoundException(`Record with id ${id} does not exist`);
     }

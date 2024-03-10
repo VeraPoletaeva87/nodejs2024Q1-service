@@ -1,6 +1,5 @@
 import {
   BadRequestException,
-  HttpStatus,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -81,10 +80,13 @@ export class AlbumService {
   delete(id: string) {
     this.validateId(id);
     const index = data.albums.findIndex((item) => item.id === id);
-    // const trackIndex = data.tracks.findIndex((item) => item.albumId === id);
     if (index !== -1) {
       data.albums.splice(index, 1);
-      //  data.tracks[trackIndex].albumId = null;
+      data.tracks.forEach((item) => {
+        if (item.albumId === id) {
+          item.albumId = null;
+        }
+      });
     } else {
       throw new NotFoundException(`Record with id ${id} does not exist`);
     }

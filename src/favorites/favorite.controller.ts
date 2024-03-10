@@ -1,17 +1,10 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  HttpCode,
-  Param,
-  Post,
-  Put,
-} from '@nestjs/common';
+import { Controller, Delete, Get, HttpCode, Param, Post } from '@nestjs/common';
 
-import { CreateFavDTO } from './favorite.models';
 import type { Favorites } from './favorite.schema';
 import { FavoritesService } from './favorite.service';
+import { Track } from 'src/tracks/track.schema';
+import { Album } from 'src/albums/album.schema';
+import { Artist } from 'src/artists/artist.schema';
 
 @Controller('favs')
 export class FavoriteController {
@@ -24,7 +17,7 @@ export class FavoriteController {
   }
 
   @Post('track/:id')
-  createTrack(@Param('id') id: string): Favorites {
+  createTrack(@Param('id') id: string): Track {
     return this.favoritesService.addTrack(id);
   }
 
@@ -35,7 +28,7 @@ export class FavoriteController {
   }
 
   @Post('album/:id')
-  createAlbum(@Param('id') id: string): Favorites {
+  createAlbum(@Param('id') id: string): Album {
     return this.favoritesService.addAlbum(id);
   }
 
@@ -46,7 +39,7 @@ export class FavoriteController {
   }
 
   @Post('artist/:id')
-  createArtist(@Param('id') id: string): Favorites {
+  createArtist(@Param('id') id: string): Artist {
     return this.favoritesService.addArtist(id);
   }
 
