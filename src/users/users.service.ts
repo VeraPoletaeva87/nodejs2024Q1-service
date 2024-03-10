@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -56,8 +57,8 @@ export class UserService {
     };
 
     data.users.push(newUser);
-    delete newUser.password;
-    return newUser;
+
+    return { ...newUser, password: undefined };
   }
 
   update(id: string, dto: UpdatePasswordDto): User {
@@ -73,22 +74,19 @@ export class UserService {
         'Old password or new password is not string',
       );
     }
-
     const index = data.users.findIndex((item) => item.id === id);
     if (index === -1) {
       throw new NotFoundException(`Record with id ${id} does not exist`);
     }
-    if (data.users[index].password === dto.oldPassword) {
-      data.users[index].password = dto.newPassword;
-      const newVersion = data.users[index].version + 1;
-      data.users[index].version = newVersion;
-    } else {
-      throw new BadRequestException('oldPassword is wrong');
+    if (index !== -1 && data.users[index].password !== dto.oldPassword) {
+      throw new ForbiddenException('oldPassword is wrong');
     }
-    const res = data.users[index];
-    delete res.password;
-    // Return the updated user
-    return res;
+
+    data.users[index].password = dto.newPassword;
+    const newVersion = data.users[index].version + 1;
+    data.users[index].version = newVersion;
+    data.users[index].updatedAt = new Date().getTime();
+    return { ...data.users[index], password: undefined };
   }
 
   delete(id: string) {

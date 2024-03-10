@@ -58,7 +58,7 @@ export class TrackService {
       );
     }
 
-    const index = data.users.findIndex((item) => item.id === id);
+    const index = data.tracks.findIndex((item) => item.id === id);
     if (index === -1) {
       throw new NotFoundException(`Record with id ${id} does not exist`);
     }

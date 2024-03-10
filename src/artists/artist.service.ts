@@ -52,25 +52,21 @@ export class ArtistService {
 
   update(id: string, dto: CreateArtistDTO): Artist {
     this.validateId(id);
-
     const index = data.artists.findIndex((item) => item.id === id);
     if (index === -1) {
       throw new HttpException('Record not found', HttpStatus.NOT_FOUND);
     }
 
-    if (!dto.name || !dto.grammy) {
-      throw new BadRequestException(
-        'Request body does not contain required fields (name, duration)',
-      );
-    }
-    console.log('DTO TYPES', dto);
-    if (typeof dto.name !== 'string' || typeof dto.grammy !== 'boolean') {
+    if (
+      (dto.name !== null && typeof dto.name !== 'string') ||
+      (dto.grammy !== null && typeof dto.grammy !== 'boolean')
+    ) {
       throw new BadRequestException('Request body fields have wrong type');
     }
+
     data.artists[index].name = dto.name;
     data.artists[index].grammy = dto.grammy;
-    console.log('UPDATED');
-    return;
+    return data.artists[index];
   }
 
   delete(id: string) {

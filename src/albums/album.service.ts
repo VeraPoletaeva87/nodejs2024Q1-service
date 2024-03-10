@@ -65,7 +65,7 @@ export class AlbumService {
       throw new BadRequestException('Request body fields has wrong types');
     }
 
-    const index = data.users.findIndex((item) => item.id === id);
+    const index = data.albums.findIndex((item) => item.id === id);
     if (index === -1) {
       throw new NotFoundException(`Record with id ${id} does not exist`);
     }
