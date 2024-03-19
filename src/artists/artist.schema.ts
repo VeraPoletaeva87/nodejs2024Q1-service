@@ -1,5 +1,13 @@
-export interface Artist {
-  id: string; // uuid v4
+import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+
+@Entity()
+export class Artist {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column()
   name: string;
+
+  @Column({ default: false })
   grammy: boolean;
 }

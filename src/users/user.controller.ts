@@ -18,12 +18,12 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get()
-  getAll(): User[] {
+  getAll(): Promise<User[]> {
     return this.userService.findAll();
   }
 
   @Get(':userId')
-  getById(@Param('userId') userId: string): User {
+  getById(@Param('userId') userId: string): Promise<User> {
     return this.userService.findOne(userId);
   }
 

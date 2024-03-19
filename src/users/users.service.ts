@@ -4,14 +4,20 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 
 import type { CreateUserDTO, UpdatePasswordDto } from './users-models';
 import { User } from './user-schema';
-import { data } from 'src/data/data';
 import { v4 as uuidv4, validate } from 'uuid';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class UserService {
+  constructor(
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+  ) {}
+
   validateId(id: string) {
     const validId = validate(id);
     if (!validId) {
@@ -19,20 +25,20 @@ export class UserService {
     }
   }
 
-  findAll(): User[] {
-    const users = data.users;
+  async findAll(): Promise<User[]> {
+    const users = await this.userRepository.find();
     users.forEach((user) => {
       delete user.password;
     });
     return users;
   }
 
-  findOne(id: string): User {
-    this.validateId(id);
+  async findOne(userId: string): Promise<User> {
+    this.validateId(userId);
 
-    const item = data.users.find((item) => item.id === id);
+    const item = await this.userRepository.findOne({ where: { id: userId } });
     if (!item) {
-      throw new NotFoundException(`Record with id ${id} does not exist`);
+      throw new NotFoundException(`Record with id ${userId} does not exist`);
     }
     return item;
   }
@@ -47,7 +53,7 @@ export class UserService {
     if (typeof dto.login !== 'string' || typeof dto.password !== 'string') {
       throw new BadRequestException('Login or password not string');
     }
-    const newUser = {
+    const userData = {
       id: uuidv4(),
       login: dto.login,
       password: dto.password,
@@ -56,13 +62,14 @@ export class UserService {
       updatedAt: new Date().getTime(),
     };
 
-    data.users.push(newUser);
+    const newUser = this.userRepository.create(userData);
+    this.userRepository.save(newUser);
 
     return { ...newUser, password: undefined };
   }
 
-  update(id: string, dto: UpdatePasswordDto): User {
-    this.validateId(id);
+  async update(userId: string, dto: UpdatePasswordDto): Promise<User> {
+    this.validateId(userId);
     if (!dto.oldPassword || !dto.newPassword) {
       throw new BadRequestException('Old password or new password is empty');
     }
@@ -74,28 +81,28 @@ export class UserService {
         'Old password or new password is not string',
       );
     }
-    const index = data.users.findIndex((item) => item.id === id);
-    if (index === -1) {
-      throw new NotFoundException(`Record with id ${id} does not exist`);
+    const item = await this.userRepository.findOne({ where: { id: userId } });
+    if (!item) {
+      throw new NotFoundException(`Record with id ${userId} does not exist`);
     }
-    if (index !== -1 && data.users[index].password !== dto.oldPassword) {
+    if (item && item.password !== dto.oldPassword) {
       throw new ForbiddenException('oldPassword is wrong');
     }
 
-    data.users[index].password = dto.newPassword;
-    const newVersion = data.users[index].version + 1;
-    data.users[index].version = newVersion;
-    data.users[index].updatedAt = new Date().getTime();
-    return { ...data.users[index], password: undefined };
+    item.password = dto.newPassword;
+    const newVersion = item.version + 1;
+    item.version = newVersion;
+    item.updatedAt = new Date().getTime();
+    return { ...item, password: undefined };
   }
 
-  delete(id: string) {
-    this.validateId(id);
-    const index = data.users.findIndex((item) => item.id === id);
-    if (index !== -1) {
-      data.users.splice(index, 1);
+  async delete(userId: string) {
+    this.validateId(userId);
+    const item = await this.userRepository.findOne({ where: { id: userId } });
+    if (item) {
+      await this.userRepository.delete(userId);
     } else {
-      throw new NotFoundException(`Record with id ${id} does not exist`);
+      throw new NotFoundException(`Record with id ${userId} does not exist`);
     }
     return;
   }

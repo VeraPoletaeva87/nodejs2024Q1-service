@@ -1,9 +1,41 @@
 version: '3'
 services:
-  node-app:
-    build: .
+  nestapp:
+    container_name: myapp
+    build:
+      context: .
+      target: development
+    restart: unless-stopped
     ports:
-      - "3000:3000"
+      - ${PORT}:${PORT}
+    command: npm run start:dev
+    environment:
+      DB_TYPE: ${PG_DB_TYPE}
+      PG_HOST: ${PG_HOST}
+      PG_USER: ${PG_USER}
+      PG_PASSWORD: ${PG_PASSWORD}
+      PG_DB: ${PG_DB}
+      PG_PORT: ${PG_PORT}
+    depends_on:
+      - db
+    volumes:
+      - .:/user/app
+    networks:
+      - user-defined
+  db:
+    container_name: mydb
+    image: postgres:latest
+    build: postgres
+    restart: unless-stopped
+    ports:
+      - ${PG_PORT}:${PG_PORT}
+    environment:
+      POSTGRES_USER: ${PG_USER}
+      POSTGRES_PASSWORD: ${PG_PASSWORD}
+      POSTGRES_DB: ${PG_DB}
+    volumes:
+      - data-volume:/var/lib/postgresql/data
+      - logs-volume:/var/log/postgresql
     networks:
       - my-network
 
