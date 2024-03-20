@@ -5,12 +5,18 @@ import {
 } from '@nestjs/common';
 
 import { Track } from './track.schema';
-import { data } from 'src/data/data';
 import { v4 as uuidv4, validate } from 'uuid';
 import { CreateTrackDTO } from './tracks-models';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class TrackService {
+  constructor(
+    @InjectRepository(Track)
+    private readonly trackRepository: Repository<Track>,
+  ) {}
+
   validateId(id: string) {
     const validId = validate(id);
     if (!validId) {
@@ -18,14 +24,16 @@ export class TrackService {
     }
   }
 
-  findAll(): Track[] {
-    return data.tracks;
+  async findAll(): Promise<Track[]> {
+    const items = await this.trackRepository.find();
+    return items;
   }
 
-  findOne(id: string): Track {
+  async findOne(id: string): Promise<Track> {
     this.validateId(id);
-
-    const item = data.tracks.find((item) => item.id === id);
+    const item = await this.trackRepository.findOne({
+      where: { id: id },
+    });
     if (!item) {
       throw new NotFoundException(`Record with id ${id} does not exist`);
     }
@@ -45,11 +53,16 @@ export class TrackService {
       albumId: dto.albumId,
       duration: dto.duration,
     };
-    data.tracks.push(newTrack);
+
+    this.trackRepository.save(
+      this.trackRepository.create({
+        ...newTrack,
+      }),
+    );
     return newTrack;
   }
 
-  update(id: string, dto: CreateTrackDTO): Track {
+  async update(id: string, dto: CreateTrackDTO): Promise<Track> {
     this.validateId(id);
 
     if (!dto.name || !dto.duration) {
@@ -58,24 +71,23 @@ export class TrackService {
       );
     }
 
-    const index = data.tracks.findIndex((item) => item.id === id);
-    if (index === -1) {
+    const item = await this.trackRepository.findOne({ where: { id } });
+    if (item) {
       throw new NotFoundException(`Record with id ${id} does not exist`);
     }
-    data.tracks[index].name = dto.name;
-    data.tracks[index].duration = dto.duration;
-    data.tracks[index].artistId = dto.artistId;
-    data.tracks[index].albumId = dto.albumId;
+
+    Object.assign(item, CreateTrackDTO);
+    await this.trackRepository.save(item);
 
     // Return the updated user
-    return data.tracks[index];
+    return item;
   }
 
-  delete(id: string) {
+  async delete(id: string) {
     this.validateId(id);
-    const index = data.tracks.findIndex((item) => item.id === id);
-    if (index !== -1) {
-      data.tracks.splice(index, 1);
+    const item = await this.trackRepository.findOne({ where: { id } });
+    if (item) {
+      await this.trackRepository.delete(id);
     } else {
       throw new NotFoundException(`Record with id ${id} does not exist`);
     }

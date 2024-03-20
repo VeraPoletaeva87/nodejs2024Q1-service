@@ -18,23 +18,26 @@ export class ArtistController {
   constructor(private readonly artistService: ArtistService) {}
 
   @Get()
-  findAll(): Artist[] {
+  findAll(): Promise<Artist[]> {
     const response = this.artistService.findAll();
     return response;
   }
 
   @Get(':id')
-  findOne(@Param('id') prodId: string): Artist {
+  findOne(@Param('id') prodId: string): Promise<Artist> {
     return this.artistService.findOne(prodId);
   }
 
   @Post()
-  create(@Body() dto: CreateArtistDTO): Artist {
+  create(@Body() dto: CreateArtistDTO): Promise<Artist> {
     return this.artistService.create(dto);
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() dto: CreateArtistDTO): Artist {
+  update(
+    @Param('id') id: string,
+    @Body() dto: CreateArtistDTO,
+  ): Promise<Artist> {
     return this.artistService.update(id, dto);
   }
 

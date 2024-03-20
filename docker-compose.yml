@@ -21,7 +21,7 @@ services:
     volumes:
       - .:/user/app
     networks:
-      - user-defined
+      - my-network
   db:
     container_name: mydb
     image: postgres:latest
@@ -38,6 +38,9 @@ services:
       - logs-volume:/var/log/postgresql
     networks:
       - my-network
+volumes:
+  data-volume:
+  logs-volume:
 
 networks:
   my-network:

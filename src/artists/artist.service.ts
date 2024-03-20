@@ -7,12 +7,18 @@ import {
 } from '@nestjs/common';
 
 import { Artist } from './artist.schema';
-import { data } from 'src/data/data';
 import { v4 as uuidv4, validate } from 'uuid';
 import { CreateArtistDTO } from './artist.models';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class ArtistService {
+  constructor(
+    @InjectRepository(Artist)
+    private readonly artistRepository: Repository<Artist>,
+  ) {}
+
   validateId(id: string) {
     const validId = validate(id);
     if (!validId) {
@@ -20,22 +26,24 @@ export class ArtistService {
     }
   }
 
-  findAll(): Artist[] {
-    return data.artists;
+  async findAll(): Promise<Artist[]> {
+    const items = await this.artistRepository.find();
+    return items;
   }
 
-  findOne(id: string): Artist {
+  async findOne(id: string): Promise<Artist> {
     this.validateId(id);
 
-    const item = data.artists.find((item) => item.id === id);
-    const index = data.artists.findIndex((item) => item.id === id);
-    if (index === -1) {
+    const item = await this.artistRepository.findOne({
+      where: { id: id },
+    });
+    if (!item) {
       throw new HttpException('Record not found', HttpStatus.NOT_FOUND);
     }
     return item;
   }
 
-  create(dto: CreateArtistDTO): Artist {
+  async create(dto: CreateArtistDTO): Promise<Artist> {
     if (!dto.name || !dto.grammy) {
       throw new BadRequestException(
         'Request body does not contain required fields (name, duration)',
@@ -46,14 +54,17 @@ export class ArtistService {
       name: dto.name,
       grammy: dto.grammy,
     };
-    data.artists.push(newArtist);
+    await this.artistRepository.save(dto);
     return newArtist;
   }
 
-  update(id: string, dto: CreateArtistDTO): Artist {
+  async update(id: string, dto: CreateArtistDTO): Promise<Artist> {
     this.validateId(id);
-    const index = data.artists.findIndex((item) => item.id === id);
-    if (index === -1) {
+    const item = await this.artistRepository.findOne({
+      where: { id: id },
+    });
+
+    if (item) {
       throw new HttpException('Record not found', HttpStatus.NOT_FOUND);
     }
 
@@ -64,26 +75,28 @@ export class ArtistService {
       throw new BadRequestException('Request body fields have wrong type');
     }
 
-    data.artists[index].name = dto.name;
-    data.artists[index].grammy = dto.grammy;
-    return data.artists[index];
+    await this.artistRepository.save({
+      ...item,
+      ...dto,
+    });
+    return item;
   }
 
-  delete(id: string) {
+  async delete(id: string) {
     this.validateId(id);
-    const index = data.artists.findIndex((item) => item.id === id);
-    if (index !== -1) {
-      data.artists.splice(index, 1);
-      data.tracks.forEach((item) => {
-        if (item.artistId === id) {
-          item.artistId = null;
-        }
-      });
-      data.albums.forEach((item) => {
-        if (item.artistId === id) {
-          item.artistId = null;
-        }
-      });
+    const item = await this.artistRepository.findOne({ where: { id } });
+    if (item) {
+      await this.artistRepository.delete(id);
+      // data.tracks.forEach((item) => {
+      //   if (item.artistId === id) {
+      //     item.artistId = null;
+      //   }
+      // });
+      // data.albums.forEach((item) => {
+      //   if (item.artistId === id) {
+      //     item.artistId = null;
+      //   }
+      // });
     } else {
       throw new NotFoundException(`Record with id ${id} does not exist`);
     }

@@ -1,6 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
-import { Artist } from '../artists/artist.schema'; // Import the Artist entity if it exists
-import { Album } from '../albums/album.schema'; // Import the Album entity if it exists
+import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
 @Entity()
 export class Track {
@@ -10,11 +8,11 @@ export class Track {
   @Column()
   name: string;
 
-  @ManyToOne(() => Artist, { nullable: true })
-  artist: Artist | null;
+  @Column({ nullable: true })
+  artistId: string | null;
 
-  @ManyToOne(() => Album, { nullable: true })
-  album: Album | null;
+  @Column({ nullable: true })
+  albumId: string | null;
 
   @Column({ type: 'integer' })
   duration: number;

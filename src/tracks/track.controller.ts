@@ -18,13 +18,13 @@ export class TrackController {
   constructor(private readonly trackService: TrackService) {}
 
   @Get()
-  findAll(): Track[] {
+  findAll(): Promise<Track[]> {
     const response = this.trackService.findAll();
     return response;
   }
 
   @Get(':id')
-  findOne(@Param('id') prodId: string): Track {
+  findOne(@Param('id') prodId: string): Promise<Track> {
     return this.trackService.findOne(prodId);
   }
 
@@ -34,7 +34,7 @@ export class TrackController {
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() dto: CreateTrackDTO): Track {
+  update(@Param('id') id: string, @Body() dto: CreateTrackDTO): Promise<Track> {
     return this.trackService.update(id, dto);
   }
 
