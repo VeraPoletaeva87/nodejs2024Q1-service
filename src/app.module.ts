@@ -8,6 +8,10 @@ import { AlbumModule } from './albums/album.module';
 import { FavoriteModule } from './favorites/favorite.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { Artist } from './artists/artist.schema';
+import { User } from './users/user-schema';
+import { Track } from './tracks/track.schema';
+import { Album } from './albums/album.schema';
 
 @Module({
   imports: [
@@ -21,7 +25,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
           username: configService.get('PG_USER'),
           password: configService.get('PG_PASSWORD'),
           database: configService.get('PG_DB'),
-          entities: ['dist/**/*.entity.js'],
+          entities: [User, Artist, Album, Track],
           synchronize: true,
           logging: false,
         };

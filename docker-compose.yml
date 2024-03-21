@@ -4,8 +4,8 @@ services:
     container_name: myapp
     build:
       context: .
-      target: development
-    restart: unless-stopped
+      dockerfile: app.dockerfile
+    restart: always
     ports:
       - ${PORT}:${PORT}
     command: npm run start:dev
@@ -18,15 +18,15 @@ services:
       PG_PORT: ${PG_PORT}
     depends_on:
       - db
-    volumes:
-      - .:/user/app
     networks:
       - my-network
   db:
     container_name: mydb
     image: postgres:latest
-    build: postgres
-    restart: unless-stopped
+    build: 
+      context: .
+      dockerfile: db.dockerfile
+    restart: always
     ports:
       - ${PG_PORT}:${PG_PORT}
     environment:

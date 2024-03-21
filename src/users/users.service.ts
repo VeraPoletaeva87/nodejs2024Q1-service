@@ -54,8 +54,8 @@ export class UserService {
       login: dto.login,
       password: dto.password,
       version: 1,
-      createdAt: new Date().getTime(),
-      updatedAt: new Date().getTime(),
+      createdAt: new Date().getTime().toString(),
+      updatedAt: new Date().getTime().toString(),
     };
 
     const newUser = this.userRepository.create(userData);
@@ -87,7 +87,7 @@ export class UserService {
     item.password = dto.newPassword;
     const newVersion = item.version + 1;
     item.version = newVersion;
-    item.updatedAt = new Date().getTime();
+    item.updatedAt = new Date().getTime().toString();
     await this.userRepository.save(item);
     return { ...item, password: undefined };
   }
