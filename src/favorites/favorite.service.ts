@@ -54,7 +54,7 @@ export class FavoritesService {
   async addTrack(id: string): Promise<Track> {
     this.validateId(id);
 
-    const item: Track = await this.trackService.findOne(id);
+    const item: Track = await this.trackService.findOne(id, true);
     const favorites: Favorites = await this.findAll();
 
     if (!item) {
@@ -75,6 +75,7 @@ export class FavoritesService {
     const index = favorites.tracks.findIndex((item) => item.id === id);
     if (index !== -1) {
       favorites.tracks.splice(index, 1);
+      await this.favoritesRepository.save(favorites);
     } else {
       throw new NotFoundException(`Record with id ${id} does not exist`);
     }
@@ -82,17 +83,8 @@ export class FavoritesService {
   }
 
   async addAlbum(id: string): Promise<Album> {
-    this.validateId(id);
-
-    const item: Album = await this.albumService.findOne(id);
+    const item: Album = await this.albumService.findOne(id, true);
     const favorites: Favorites = await this.findAll();
-
-    if (!item) {
-      throw new HttpException(
-        'Record not found',
-        HttpStatus.UNPROCESSABLE_ENTITY,
-      );
-    }
     favorites.albums.push(item);
     await this.favoritesRepository.save(favorites);
     return item;
@@ -104,6 +96,7 @@ export class FavoritesService {
     const index = favorites.albums.findIndex((item) => item.id === id);
     if (index !== -1) {
       favorites.albums.splice(index, 1);
+      await this.favoritesRepository.save(favorites);
     } else {
       throw new NotFoundException(`Record with id ${id} does not exist`);
     }
@@ -112,7 +105,7 @@ export class FavoritesService {
 
   async addArtist(id: string): Promise<Artist> {
     this.validateId(id);
-    const item: Artist = await this.artistService.findOneId(id);
+    const item: Artist = await this.artistService.findOneId(id, true);
     const favorites: Favorites = await this.findAll();
 
     if (!item) {
@@ -132,6 +125,7 @@ export class FavoritesService {
     const index = favorites.artists.findIndex((item) => item.id === id);
     if (index !== -1) {
       favorites.artists.splice(index, 1);
+      await this.favoritesRepository.save(favorites);
     } else {
       throw new NotFoundException(`Record with id ${id} does not exist`);
     }

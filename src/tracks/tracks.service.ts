@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  HttpException,
+  HttpStatus,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -29,11 +31,18 @@ export class TrackService {
     return items;
   }
 
-  async findOne(id: string): Promise<Track> {
+  async findOne(id: string, isFavorites = false): Promise<Track> {
     this.validateId(id);
     const item: Track = await this.trackRepository.findOneBy({ id });
     if (!item) {
-      throw new NotFoundException(`Record with id ${id} does not exist`);
+      if (isFavorites) {
+        throw new HttpException(
+          'Record not found',
+          HttpStatus.UNPROCESSABLE_ENTITY,
+        );
+      } else {
+        throw new NotFoundException(`Record with id ${id} does not exist`);
+      }
     }
     return item;
   }
@@ -51,8 +60,9 @@ export class TrackService {
 
   async update(id: string, dto: CreateTrackDTO): Promise<Track> {
     this.validateId(id);
-
+    console.log('track UPDATE', dto);
     if (!dto.name || !dto.duration) {
+      console.log('track DTO', dto);
       throw new BadRequestException(
         'Request body does not contain required fields (name, duration)',
       );

@@ -1,7 +1,10 @@
 import {
   BadRequestException,
+  HttpException,
+  HttpStatus,
   Injectable,
   NotFoundException,
+  UnprocessableEntityException,
 } from '@nestjs/common';
 
 import { Album } from './album.schema';
@@ -28,13 +31,18 @@ export class AlbumService {
     return items;
   }
 
-  async findOne(id: string): Promise<Album> {
+  async findOne(id: string, isFavorites = false): Promise<Album> {
     this.validateId(id);
-    const item = await this.albumRepository.findOne({
-      where: { id: id },
-    });
+    const item: Album = await this.albumRepository.findOneBy({ id });
     if (!item) {
-      throw new NotFoundException(`Record with id ${id} does not exist`);
+      if (isFavorites) {
+        throw new HttpException(
+          'Record not found',
+          HttpStatus.UNPROCESSABLE_ENTITY,
+        );
+      } else {
+        throw new NotFoundException(`Record with id ${id} does not exist`);
+      }
     }
     return item;
   }
@@ -90,14 +98,9 @@ export class AlbumService {
 
   async delete(id: string) {
     this.validateId(id);
-    const album: Album = await this.findOne(id);
-
-    if (album) {
-      await this.albumRepository.remove(album);
-      // this.trackRepository.({where: { item.albumId === id) {
-      //     item.albumId = null;
-      //   }
-      // });
+    const item: Album = await this.albumRepository.findOneBy({ id });
+    if (item) {
+      await this.albumRepository.remove(item);
     } else {
       throw new NotFoundException(`Record with id ${id} does not exist`);
     }

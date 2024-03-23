@@ -6,8 +6,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Track } from './track.schema';
 import { AlbumModule } from '../albums/album.module';
 import { ArtistModule } from '../artists/artist.module';
-import { AlbumService } from '../albums/album.service';
-import { ArtistService } from '../artists/artist.service';
 
 @Module({
   imports: [
@@ -16,7 +14,7 @@ import { ArtistService } from '../artists/artist.service';
     forwardRef(() => ArtistModule),
   ],
   controllers: [TrackController],
-  providers: [TrackService, AlbumService, ArtistService],
-  exports: [TypeOrmModule],
+  providers: [TrackService],
+  exports: [TypeOrmModule, TrackService],
 })
 export class TrackModule {}

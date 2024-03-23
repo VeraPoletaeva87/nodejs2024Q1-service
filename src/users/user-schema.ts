@@ -14,13 +14,9 @@ export class User {
   @Column({ type: 'int', default: 0 })
   version: number;
 
-  @Column({ type: 'text', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({ type: 'bigint', nullable: true })
   createdAt: number;
 
-  @Column({
-    type: 'text',
-    default: () => 'CURRENT_TIMESTAMP',
-    onUpdate: 'CURRENT_TIMESTAMP',
-  })
+  @Column({ type: 'bigint', nullable: true })
   updatedAt: number;
 }

@@ -49,8 +49,8 @@ export class UserService {
     if (typeof dto.login !== 'string' || typeof dto.password !== 'string') {
       throw new BadRequestException('Login or password not string');
     }
-    const userData = {
-      id: uuidv4(),
+
+    const data = {
       login: dto.login,
       password: dto.password,
       version: 1,
@@ -58,7 +58,8 @@ export class UserService {
       updatedAt: new Date().getTime(),
     };
 
-    const newUser = this.userRepository.create(userData);
+    const newUser = this.userRepository.create(data);
+
     await this.userRepository.save(newUser);
     return { ...newUser, password: undefined };
   }
@@ -76,17 +77,19 @@ export class UserService {
         'Old password or new password is not string',
       );
     }
-    const item = await this.userRepository.findOne({ where: { id: userId } });
+    const item: User = await this.userRepository.findOneBy({ id: userId });
     if (!item) {
       throw new NotFoundException(`Record with id ${userId} does not exist`);
     }
     if (item && item.password !== dto.oldPassword) {
       throw new ForbiddenException('oldPassword is wrong');
     }
+    const date: number = item.createdAt;
 
     item.password = dto.newPassword;
     const newVersion = item.version + 1;
     item.version = newVersion;
+    item.createdAt = +date;
     item.updatedAt = new Date().getTime();
     await this.userRepository.save(item);
     return { ...item, password: undefined };
@@ -94,7 +97,7 @@ export class UserService {
 
   async delete(userId: string) {
     this.validateId(userId);
-    const item = await this.userRepository.findOne({ where: { id: userId } });
+    const item: User = await this.userRepository.findOneBy({ id: userId });
     if (item) {
       await this.userRepository.remove(item);
     } else {
