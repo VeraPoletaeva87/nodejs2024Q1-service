@@ -12,6 +12,7 @@ import { Artist } from './artists/artist.schema';
 import { User } from './users/user-schema';
 import { Track } from './tracks/track.schema';
 import { Album } from './albums/album.schema';
+import { Favorites } from './favorites/favorite.schema';
 
 @Module({
   imports: [
@@ -25,7 +26,7 @@ import { Album } from './albums/album.schema';
           username: configService.get('PG_USER'),
           password: configService.get('PG_PASSWORD'),
           database: configService.get('PG_DB'),
-          entities: [User, Artist, Album, Track],
+          entities: [User, Artist, Album, Track, Favorites],
           synchronize: true,
           logging: false,
         };

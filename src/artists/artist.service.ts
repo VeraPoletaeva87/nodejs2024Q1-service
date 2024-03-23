@@ -4,6 +4,7 @@ import {
   HttpStatus,
   Injectable,
   NotFoundException,
+  UnprocessableEntityException,
 } from '@nestjs/common';
 
 import { Artist } from './artist.schema';
@@ -31,41 +32,38 @@ export class ArtistService {
     return items;
   }
 
-  async findOne(id: string): Promise<Artist> {
+  async findOneId(id: string, isFavorites = false): Promise<Artist> {
     this.validateId(id);
+    const artist: Artist = await this.artistRepository.findOneBy({ id });
 
-    const item = await this.artistRepository.findOne({
-      where: { id: id },
-    });
-    if (!item) {
-      throw new HttpException('Record not found', HttpStatus.NOT_FOUND);
+    if (!artist) {
+      const Exception = isFavorites
+        ? UnprocessableEntityException
+        : NotFoundException;
+
+      throw new Exception('Incorrect data format');
     }
-    return item;
+
+    return artist;
   }
 
   async create(dto: CreateArtistDTO): Promise<Artist> {
     if (!dto.name || !dto.grammy) {
       throw new BadRequestException(
-        'Request body does not contain required fields (name, duration)',
+        'Request body does not contain required fields (name, grammy)',
       );
     }
-    const newArtist = {
-      id: uuidv4(),
-      name: dto.name,
-      grammy: dto.grammy,
-    };
-    await this.artistRepository.save(dto);
-    return newArtist;
+    const newArtist: Artist = this.artistRepository.create(dto);
+
+    return await this.artistRepository.save(newArtist);
   }
 
   async update(id: string, dto: CreateArtistDTO): Promise<Artist> {
     this.validateId(id);
-    const item = await this.artistRepository.findOne({
-      where: { id: id },
-    });
 
-    if (item) {
-      throw new HttpException('Record not found', HttpStatus.NOT_FOUND);
+    const item: Artist = await this.artistRepository.findOneBy({ id });
+    if (!item) {
+      throw new NotFoundException(`Record with id ${id} does not exist`);
     }
 
     if (
@@ -84,8 +82,10 @@ export class ArtistService {
 
   async delete(id: string) {
     this.validateId(id);
-    const item = await this.artistRepository.findOne({ where: { id } });
-    if (item) {
+    const item: Artist = await this.artistRepository.findOneBy({ id });
+    if (!item) {
+      throw new NotFoundException(`Record with id ${id} does not exist`);
+    } else {
       await this.artistRepository.delete(id);
       // data.tracks.forEach((item) => {
       //   if (item.artistId === id) {
@@ -97,8 +97,6 @@ export class ArtistService {
       //     item.artistId = null;
       //   }
       // });
-    } else {
-      throw new NotFoundException(`Record with id ${id} does not exist`);
     }
     return;
   }

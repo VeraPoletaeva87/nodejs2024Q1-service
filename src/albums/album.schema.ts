@@ -1,7 +1,9 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
 import { Artist } from '../artists/artist.schema'; // Import the Artist entity if it exists
+import { Exclude } from 'class-transformer';
+import { Favorites } from 'src/favorites/favorite.schema';
 
-@Entity()
+@Entity('album')
 export class Album {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -17,4 +19,10 @@ export class Album {
 
   @Column({ nullable: true })
   artistId: string | null;
+
+  @Exclude()
+  @ManyToOne(() => Favorites, (favorites: Favorites) => favorites.albums, {
+    onDelete: 'SET NULL',
+  })
+  favorites: Favorites;
 }

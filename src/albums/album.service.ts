@@ -5,7 +5,6 @@ import {
 } from '@nestjs/common';
 
 import { Album } from './album.schema';
-import { data } from 'src/data/data';
 import { v4 as uuidv4, validate } from 'uuid';
 import { CreateAlbumDTO } from './album.model';
 import { Repository } from 'typeorm';
@@ -89,16 +88,16 @@ export class AlbumService {
     return await this.albumRepository.save(updatedAlbum);
   }
 
-  delete(id: string) {
+  async delete(id: string) {
     this.validateId(id);
-    const index = data.albums.findIndex((item) => item.id === id);
-    if (index !== -1) {
-      data.albums.splice(index, 1);
-      data.tracks.forEach((item) => {
-        if (item.albumId === id) {
-          item.albumId = null;
-        }
-      });
+    const album: Album = await this.findOne(id);
+
+    if (album) {
+      await this.albumRepository.remove(album);
+      // this.trackRepository.({where: { item.albumId === id) {
+      //     item.albumId = null;
+      //   }
+      // });
     } else {
       throw new NotFoundException(`Record with id ${id} does not exist`);
     }

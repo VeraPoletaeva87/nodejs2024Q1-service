@@ -18,23 +18,26 @@ export class TrackController {
   constructor(private readonly trackService: TrackService) {}
 
   @Get()
-  findAll(): Promise<Track[]> {
+  async findAll(): Promise<Track[]> {
     const response = this.trackService.findAll();
     return response;
   }
 
   @Get(':id')
-  findOne(@Param('id') prodId: string): Promise<Track> {
+  async findOne(@Param('id') prodId: string): Promise<Track> {
     return this.trackService.findOne(prodId);
   }
 
   @Post()
-  create(@Body() dto: CreateTrackDTO): Track {
+  async create(@Body() dto: CreateTrackDTO): Promise<Track> {
     return this.trackService.create(dto);
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() dto: CreateTrackDTO): Promise<Track> {
+  async update(
+    @Param('id') id: string,
+    @Body() dto: CreateTrackDTO,
+  ): Promise<Track> {
     return this.trackService.update(id, dto);
   }
 

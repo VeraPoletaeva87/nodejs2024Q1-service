@@ -15,12 +15,12 @@ export class User {
   version: number;
 
   @Column({ type: 'text', default: () => 'CURRENT_TIMESTAMP' })
-  createdAt: string;
+  createdAt: number;
 
   @Column({
     type: 'text',
     default: () => 'CURRENT_TIMESTAMP',
     onUpdate: 'CURRENT_TIMESTAMP',
   })
-  updatedAt: string;
+  updatedAt: number;
 }

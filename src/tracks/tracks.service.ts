@@ -31,35 +31,22 @@ export class TrackService {
 
   async findOne(id: string): Promise<Track> {
     this.validateId(id);
-    const item = await this.trackRepository.findOne({
-      where: { id: id },
-    });
+    const item: Track = await this.trackRepository.findOneBy({ id });
     if (!item) {
       throw new NotFoundException(`Record with id ${id} does not exist`);
     }
     return item;
   }
 
-  create(dto: CreateTrackDTO): Track {
+  async create(dto: CreateTrackDTO): Promise<Track> {
     if (!dto.name || !dto.duration) {
       throw new BadRequestException(
         'Request body does not contain required fields (name, duration)',
       );
     }
-    const newTrack = {
-      id: uuidv4(),
-      name: dto.name,
-      artistId: dto.artistId,
-      albumId: dto.albumId,
-      duration: dto.duration,
-    };
+    const newTrack: Track = this.trackRepository.create(dto);
 
-    this.trackRepository.save(
-      this.trackRepository.create({
-        ...newTrack,
-      }),
-    );
-    return newTrack;
+    return await this.trackRepository.save(newTrack);
   }
 
   async update(id: string, dto: CreateTrackDTO): Promise<Track> {
@@ -71,8 +58,8 @@ export class TrackService {
       );
     }
 
-    const item = await this.trackRepository.findOne({ where: { id } });
-    if (item) {
+    const item: Track = await this.trackRepository.findOneBy({ id });
+    if (!item) {
       throw new NotFoundException(`Record with id ${id} does not exist`);
     }
 
@@ -85,7 +72,7 @@ export class TrackService {
 
   async delete(id: string) {
     this.validateId(id);
-    const item = await this.trackRepository.findOne({ where: { id } });
+    const item: Track = await this.trackRepository.findOneBy({ id });
     if (item) {
       await this.trackRepository.delete(id);
     } else {

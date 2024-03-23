@@ -1,6 +1,8 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Exclude } from 'class-transformer';
+import { Favorites } from 'src/favorites/favorite.schema';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
 
-@Entity()
+@Entity('track')
 export class Track {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -16,4 +18,8 @@ export class Track {
 
   @Column({ type: 'integer' })
   duration: number;
+
+  @Exclude()
+  @ManyToOne(() => Favorites, (favorites: Favorites) => favorites.tracks)
+  favorites: Favorites;
 }

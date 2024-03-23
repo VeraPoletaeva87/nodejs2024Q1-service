@@ -8,33 +8,33 @@ import {
   Post,
   Put,
 } from '@nestjs/common';
-
-import { CreateArtistDTO } from './artist.models';
-import type { Artist } from './artist.schema';
 import { ArtistService } from './artist.service';
+import { CreateArtistDTO } from './artist.models';
+import { Artist } from './artist.schema';
 
 @Controller('artist')
 export class ArtistController {
   constructor(private readonly artistService: ArtistService) {}
 
   @Get()
-  findAll(): Promise<Artist[]> {
-    const response = this.artistService.findAll();
-    return response;
+  async findAll(): Promise<Artist[]> {
+    return this.artistService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') prodId: string): Promise<Artist> {
-    return this.artistService.findOne(prodId);
+  async findOneId(@Param('id') id: string): Promise<Artist> {
+    return this.artistService.findOneId(id);
   }
 
   @Post()
-  create(@Body() dto: CreateArtistDTO): Promise<Artist> {
-    return this.artistService.create(dto);
+  async createArtist(
+    @Body() createArtistDto: CreateArtistDTO,
+  ): Promise<Artist> {
+    return this.artistService.create(createArtistDto);
   }
 
   @Put(':id')
-  update(
+  async updateArtist(
     @Param('id') id: string,
     @Body() dto: CreateArtistDTO,
   ): Promise<Artist> {
@@ -43,7 +43,7 @@ export class ArtistController {
 
   @Delete(':id')
   @HttpCode(204)
-  delete(@Param('id') id: string) {
-    return this.artistService.delete(id);
+  async removeArtist(@Param('id') id: string): Promise<void> {
+    await this.artistService.delete(id);
   }
 }
