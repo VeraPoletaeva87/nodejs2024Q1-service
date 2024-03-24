@@ -2,22 +2,26 @@ import {
   BadRequestException,
   HttpException,
   HttpStatus,
+  Inject,
   Injectable,
   NotFoundException,
-  UnprocessableEntityException,
+  forwardRef,
 } from '@nestjs/common';
 
 import { Album } from './album.schema';
 import { v4 as uuidv4, validate } from 'uuid';
 import { CreateAlbumDTO } from './album.model';
-import { Repository } from 'typeorm';
+import { Repository, UpdateResult } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import { TrackService } from 'src/tracks/tracks.service';
 
 @Injectable()
 export class AlbumService {
   constructor(
     @InjectRepository(Album)
     private readonly albumRepository: Repository<Album>,
+    @Inject(forwardRef(() => TrackService))
+    private readonly trackService: TrackService,
   ) {}
   validateId(id: string) {
     const validId = validate(id);
@@ -33,7 +37,7 @@ export class AlbumService {
 
   async findOne(id: string, isFavorites = false): Promise<Album> {
     this.validateId(id);
-    const item: Album = await this.albumRepository.findOneBy({ id });
+    const item: Album | null = await this.albumRepository.findOneBy({ id });
     if (!item) {
       if (isFavorites) {
         throw new HttpException(
@@ -64,7 +68,7 @@ export class AlbumService {
     return newAlbum;
   }
 
-  async update(id: string, dto: CreateAlbumDTO): Promise<Album> {
+  async update(id: string, dto: Partial<CreateAlbumDTO>): Promise<Album> {
     this.validateId(id);
 
     if (!dto.name || !dto.year) {
@@ -101,9 +105,19 @@ export class AlbumService {
     const item: Album = await this.albumRepository.findOneBy({ id });
     if (item) {
       await this.albumRepository.remove(item);
+      await this.trackService.deleteAlbumFromTrack(id);
     } else {
       throw new NotFoundException(`Record with id ${id} does not exist`);
     }
     return;
+  }
+
+  public async deleteArtistFromAlbum(id: string): Promise<UpdateResult[]> {
+    const albums: Album[] = await this.albumRepository.findBy({ artistId: id });
+    return Promise.all(
+      albums.map((item) =>
+        this.albumRepository.update(item.id, { artistId: null }),
+      ),
+    );
   }
 }

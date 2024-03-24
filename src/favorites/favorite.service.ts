@@ -83,8 +83,17 @@ export class FavoritesService {
   }
 
   async addAlbum(id: string): Promise<Album> {
+    this.validateId(id);
+
     const item: Album = await this.albumService.findOne(id, true);
     const favorites: Favorites = await this.findAll();
+
+    if (!item) {
+      throw new HttpException(
+        'Record not found',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
     favorites.albums.push(item);
     await this.favoritesRepository.save(favorites);
     return item;
@@ -92,6 +101,7 @@ export class FavoritesService {
 
   async deleteAlbum(id: string) {
     this.validateId(id);
+
     const favorites: Favorites = await this.findAll();
     const index = favorites.albums.findIndex((item) => item.id === id);
     if (index !== -1) {

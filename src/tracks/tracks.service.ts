@@ -7,9 +7,9 @@ import {
 } from '@nestjs/common';
 
 import { Track } from './track.schema';
-import { v4 as uuidv4, validate } from 'uuid';
+import { validate } from 'uuid';
 import { CreateTrackDTO } from './tracks-models';
-import { Repository } from 'typeorm';
+import { Repository, UpdateResult } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
@@ -33,7 +33,7 @@ export class TrackService {
 
   async findOne(id: string, isFavorites = false): Promise<Track> {
     this.validateId(id);
-    const item: Track = await this.trackRepository.findOneBy({ id });
+    const item: Track | null = await this.trackRepository.findOneBy({ id });
     if (!item) {
       if (isFavorites) {
         throw new HttpException(
@@ -58,7 +58,7 @@ export class TrackService {
     return await this.trackRepository.save(newTrack);
   }
 
-  async update(id: string, dto: CreateTrackDTO): Promise<Track> {
+  async update(id: string, dto: Partial<CreateTrackDTO>): Promise<Track> {
     this.validateId(id);
     console.log('track UPDATE', dto);
     if (!dto.name || !dto.duration) {
@@ -88,6 +88,27 @@ export class TrackService {
     } else {
       throw new NotFoundException(`Record with id ${id} does not exist`);
     }
-    return;
+  }
+
+  public async deleteArtistFromTrack(id: string): Promise<UpdateResult[]> {
+    const tracks: Track[] = await this.trackRepository.findBy({
+      artistId: id,
+    });
+    return Promise.all(
+      tracks.map((item) =>
+        this.trackRepository.update(item.id, { artistId: null }),
+      ),
+    );
+  }
+
+  public async deleteAlbumFromTrack(id: string): Promise<UpdateResult[]> {
+    const tracks: Track[] = await this.trackRepository.findBy({
+      albumId: id,
+    });
+    return Promise.all(
+      tracks.map((item) =>
+        this.trackRepository.update(item.id, { albumId: null }),
+      ),
+    );
   }
 }

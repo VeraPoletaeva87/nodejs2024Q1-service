@@ -14,15 +14,13 @@ export class Album {
   @Column({ type: 'int' })
   year: number;
 
-  @ManyToOne(() => Artist, { nullable: true })
-  artist: Artist | null;
+  // @ManyToOne(() => Artist, { nullable: true })
+  // artist: Artist | null;
 
   @Column({ nullable: true })
   artistId: string | null;
 
   @Exclude()
-  @ManyToOne(() => Favorites, (favorites: Favorites) => favorites.albums, {
-    onDelete: 'SET NULL',
-  })
+  @ManyToOne(() => Favorites, (favorites: Favorites) => favorites.albums)
   favorites: Favorites;
 }
