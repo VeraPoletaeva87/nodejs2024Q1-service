@@ -57,15 +57,13 @@ export class AlbumService {
         'Request body does not contain required fields (name, duration)',
       );
     }
-    const newAlbumData = {
-      id: uuidv4(),
+    const newAlbum = this.albumRepository.create({
       name: dto.name,
       year: dto.year,
       artistId: dto.artistId,
-    };
-    const newAlbum = this.albumRepository.create(newAlbumData);
-    this.albumRepository.save(newAlbum);
-    return newAlbum;
+    });
+
+    return await this.albumRepository.save(newAlbum);
   }
 
   async update(id: string, dto: Partial<CreateAlbumDTO>): Promise<Album> {
@@ -104,7 +102,7 @@ export class AlbumService {
     this.validateId(id);
     const item: Album = await this.albumRepository.findOneBy({ id });
     if (item) {
-      await this.albumRepository.remove(item);
+      await this.albumRepository.delete(id);
       await this.trackService.deleteAlbumFromTrack(id);
     } else {
       throw new NotFoundException(`Record with id ${id} does not exist`);
