@@ -26,6 +26,10 @@ docker compose build
 
 ## Start a project
 
+docker compose -f docker-compose.yml up
+
+or
+
 docker compose up -d
 
 ## Stop the project

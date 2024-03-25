@@ -10,7 +10,7 @@ services:
       - ${PORT}:${PORT}
     command: npm run start:dev
     environment:
-      DB_TYPE: ${PG_DB_TYPE}
+      DB_TYPE: ${DB_TYPE}
       PG_HOST: ${PG_HOST}
       PG_USER: ${PG_USER}
       PG_PASSWORD: ${PG_PASSWORD}
