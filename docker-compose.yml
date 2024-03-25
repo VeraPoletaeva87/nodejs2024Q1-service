@@ -1,7 +1,7 @@
 version: '3'
 services:
   nestapp:
-    container_name: myapp
+    container_name: appcontainer
     build:
       context: .
       dockerfile: app.dockerfile
@@ -19,10 +19,12 @@ services:
     depends_on:
       - db
     networks:
-      - my-network
+      - user-defined
+    volumes:
+      - ./src:/src
   db:
-    container_name: mydb
-    image: postgres:latest
+    container_name: dbcontainer
+    image: db:latest
     build: 
       context: .
       dockerfile: db.dockerfile
@@ -37,11 +39,11 @@ services:
       - data-volume:/var/lib/postgresql/data
       - logs-volume:/var/log/postgresql
     networks:
-      - my-network
+      - user-defined
 volumes:
   data-volume:
   logs-volume:
 
 networks:
-  my-network:
+  user-defined:
     driver: bridge
