@@ -60,9 +60,7 @@ export class TrackService {
 
   async update(id: string, dto: Partial<CreateTrackDTO>): Promise<Track> {
     this.validateId(id);
-    console.log('track UPDATE', dto);
     if (!dto.name || !dto.duration) {
-      console.log('track DTO', dto);
       throw new BadRequestException(
         'Request body does not contain required fields (name, duration)',
       );

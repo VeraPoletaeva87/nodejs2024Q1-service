@@ -5,8 +5,8 @@ export class CreateFavDTO {
   readonly artists!: string[]; // favorite artists ids
 
   @IsArray()
-  readonly albums!: string[]; // favorite artists ids
+  readonly albums!: string[]; // favorite albums ids
 
   @IsArray()
-  readonly tracks!: string[]; // favorite artists ids
+  readonly tracks!: string[]; // favorite tracks ids
 }

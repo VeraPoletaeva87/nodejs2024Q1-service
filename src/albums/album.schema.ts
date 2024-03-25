@@ -1,5 +1,4 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
-import { Artist } from '../artists/artist.schema'; // Import the Artist entity if it exists
 import { Exclude } from 'class-transformer';
 import { Favorites } from 'src/favorites/favorite.schema';
 
@@ -13,9 +12,6 @@ export class Album {
 
   @Column({ type: 'int' })
   year: number;
-
-  // @ManyToOne(() => Artist, { nullable: true })
-  // artist: Artist | null;
 
   @Column({ nullable: true })
   artistId: string | null;
