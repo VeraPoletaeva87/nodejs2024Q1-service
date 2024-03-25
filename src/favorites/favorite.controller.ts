@@ -11,13 +11,13 @@ export class FavoriteController {
   constructor(private readonly favoritesService: FavoritesService) {}
 
   @Get()
-  findAll(): Favorites {
+  findAll(): Promise<Favorites> {
     const response = this.favoritesService.findAll();
     return response;
   }
 
   @Post('track/:id')
-  createTrack(@Param('id') id: string): Track {
+  createTrack(@Param('id') id: string): Promise<Track> {
     return this.favoritesService.addTrack(id);
   }
 
@@ -28,7 +28,7 @@ export class FavoriteController {
   }
 
   @Post('album/:id')
-  createAlbum(@Param('id') id: string): Album {
+  createAlbum(@Param('id') id: string): Promise<Album> {
     return this.favoritesService.addAlbum(id);
   }
 
@@ -39,7 +39,7 @@ export class FavoriteController {
   }
 
   @Post('artist/:id')
-  createArtist(@Param('id') id: string): Artist {
+  createArtist(@Param('id') id: string): Promise<Artist> {
     return this.favoritesService.addArtist(id);
   }
 

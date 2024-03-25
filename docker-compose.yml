@@ -1,0 +1,49 @@
+version: '3'
+services:
+  nestapp:
+    container_name: appcontainer
+    build:
+      context: .
+      dockerfile: app.dockerfile
+    restart: always
+    ports:
+      - ${PORT}:${PORT}
+    command: npm run start:dev
+    environment:
+      DB_TYPE: ${DB_TYPE}
+      PG_HOST: ${PG_HOST}
+      PG_USER: ${PG_USER}
+      PG_PASSWORD: ${PG_PASSWORD}
+      PG_DB: ${PG_DB}
+      PG_PORT: ${PG_PORT}
+    depends_on:
+      - db
+    networks:
+      - user-defined
+    volumes:
+      - ./src:/src
+  db:
+    container_name: dbcontainer
+    image: db:latest
+    build: 
+      context: .
+      dockerfile: db.dockerfile
+    restart: always
+    ports:
+      - ${PG_PORT}:${PG_PORT}
+    environment:
+      POSTGRES_USER: ${PG_USER}
+      POSTGRES_PASSWORD: ${PG_PASSWORD}
+      POSTGRES_DB: ${PG_DB}
+    volumes:
+      - data-volume:/var/lib/postgresql/data
+      - logs-volume:/var/log/postgresql
+    networks:
+      - user-defined
+volumes:
+  data-volume:
+  logs-volume:
+
+networks:
+  user-defined:
+    driver: bridge

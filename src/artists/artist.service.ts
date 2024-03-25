@@ -2,17 +2,31 @@ import {
   BadRequestException,
   HttpException,
   HttpStatus,
+  Inject,
   Injectable,
   NotFoundException,
+  forwardRef,
 } from '@nestjs/common';
 
 import { Artist } from './artist.schema';
-import { data } from 'src/data/data';
-import { v4 as uuidv4, validate } from 'uuid';
+import { validate } from 'uuid';
 import { CreateArtistDTO } from './artist.models';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { TrackService } from '../tracks/tracks.service';
+import { AlbumService } from '../albums/album.service';
 
 @Injectable()
 export class ArtistService {
+  constructor(
+    @InjectRepository(Artist)
+    private readonly artistRepository: Repository<Artist>,
+    @Inject(forwardRef(() => TrackService))
+    private readonly trackService: TrackService,
+    @Inject(forwardRef(() => AlbumService))
+    private readonly albumService: AlbumService,
+  ) {}
+
   validateId(id: string) {
     const validId = validate(id);
     if (!validId) {
@@ -20,42 +34,42 @@ export class ArtistService {
     }
   }
 
-  findAll(): Artist[] {
-    return data.artists;
+  async findAll(): Promise<Artist[]> {
+    const items = await this.artistRepository.find();
+    return items;
   }
 
-  findOne(id: string): Artist {
+  async findOneId(id: string, isFavorites = false): Promise<Artist> {
     this.validateId(id);
+    const artist: Artist = await this.artistRepository.findOneBy({ id });
 
-    const item = data.artists.find((item) => item.id === id);
-    const index = data.artists.findIndex((item) => item.id === id);
-    if (index === -1) {
-      throw new HttpException('Record not found', HttpStatus.NOT_FOUND);
+    if (!artist) {
+      if (isFavorites) {
+        throw new HttpException(
+          'Record not found',
+          HttpStatus.UNPROCESSABLE_ENTITY,
+        );
+      } else {
+        throw new NotFoundException(`Record with id ${id} does not exist`);
+      }
     }
-    return item;
+
+    return artist;
   }
 
-  create(dto: CreateArtistDTO): Artist {
+  async create(dto: CreateArtistDTO): Promise<Artist> {
     if (!dto.name || !dto.grammy) {
       throw new BadRequestException(
-        'Request body does not contain required fields (name, duration)',
+        'Request body does not contain required fields (name, grammy)',
       );
     }
-    const newArtist = {
-      id: uuidv4(),
-      name: dto.name,
-      grammy: dto.grammy,
-    };
-    data.artists.push(newArtist);
-    return newArtist;
+    const newArtist: Artist = this.artistRepository.create(dto);
+
+    return await this.artistRepository.save(newArtist);
   }
 
-  update(id: string, dto: CreateArtistDTO): Artist {
+  async update(id: string, dto: CreateArtistDTO): Promise<Artist> {
     this.validateId(id);
-    const index = data.artists.findIndex((item) => item.id === id);
-    if (index === -1) {
-      throw new HttpException('Record not found', HttpStatus.NOT_FOUND);
-    }
 
     if (
       (dto.name !== null && typeof dto.name !== 'string') ||
@@ -64,29 +78,25 @@ export class ArtistService {
       throw new BadRequestException('Request body fields have wrong type');
     }
 
-    data.artists[index].name = dto.name;
-    data.artists[index].grammy = dto.grammy;
-    return data.artists[index];
-  }
-
-  delete(id: string) {
-    this.validateId(id);
-    const index = data.artists.findIndex((item) => item.id === id);
-    if (index !== -1) {
-      data.artists.splice(index, 1);
-      data.tracks.forEach((item) => {
-        if (item.artistId === id) {
-          item.artistId = null;
-        }
-      });
-      data.albums.forEach((item) => {
-        if (item.artistId === id) {
-          item.artistId = null;
-        }
-      });
-    } else {
+    const item: Artist = await this.artistRepository.findOneBy({ id });
+    if (!item) {
       throw new NotFoundException(`Record with id ${id} does not exist`);
     }
-    return;
+
+    item.name = dto.name;
+    item.grammy = dto.grammy;
+
+    return await this.artistRepository.save(item);
+  }
+
+  async delete(id: string): Promise<void> {
+    this.validateId(id);
+    const item: Artist = await this.artistRepository.findOneBy({ id });
+    if (!item) {
+      throw new NotFoundException(`Record with id ${id} does not exist`);
+    }
+    await this.trackService.deleteArtistFromTrack(id);
+    await this.albumService.deleteArtistFromAlbum(id);
+    await this.artistRepository.delete(id);
   }
 }

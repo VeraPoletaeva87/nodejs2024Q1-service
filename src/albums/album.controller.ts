@@ -18,23 +18,23 @@ export class AlbumController {
   constructor(private readonly albumService: AlbumService) {}
 
   @Get()
-  findAll(): Album[] {
+  findAll(): Promise<Album[]> {
     const response = this.albumService.findAll();
     return response;
   }
 
   @Get(':id')
-  findOne(@Param('id') prodId: string): Album {
+  findOne(@Param('id') prodId: string): Promise<Album> {
     return this.albumService.findOne(prodId);
   }
 
   @Post()
-  create(@Body() dto: CreateAlbumDTO): Album {
+  create(@Body() dto: CreateAlbumDTO): Promise<Album> {
     return this.albumService.create(dto);
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() dto: CreateAlbumDTO): Album {
+  update(@Param('id') id: string, @Body() dto: CreateAlbumDTO): Promise<Album> {
     return this.albumService.update(id, dto);
   }
 

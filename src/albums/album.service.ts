@@ -1,16 +1,28 @@
 import {
   BadRequestException,
+  HttpException,
+  HttpStatus,
+  Inject,
   Injectable,
   NotFoundException,
+  forwardRef,
 } from '@nestjs/common';
 
 import { Album } from './album.schema';
-import { data } from 'src/data/data';
 import { v4 as uuidv4, validate } from 'uuid';
 import { CreateAlbumDTO } from './album.model';
+import { Repository, UpdateResult } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { TrackService } from 'src/tracks/tracks.service';
 
 @Injectable()
 export class AlbumService {
+  constructor(
+    @InjectRepository(Album)
+    private readonly albumRepository: Repository<Album>,
+    @Inject(forwardRef(() => TrackService))
+    private readonly trackService: TrackService,
+  ) {}
   validateId(id: string) {
     const validId = validate(id);
     if (!validId) {
@@ -18,37 +30,43 @@ export class AlbumService {
     }
   }
 
-  findAll(): Album[] {
-    return data.albums;
+  async findAll(): Promise<Album[]> {
+    const items = await this.albumRepository.find();
+    return items;
   }
 
-  findOne(id: string): Album {
+  async findOne(id: string, isFavorites = false): Promise<Album> {
     this.validateId(id);
-
-    const item = data.albums.find((item) => item.id === id);
+    const item: Album | null = await this.albumRepository.findOneBy({ id });
     if (!item) {
-      throw new NotFoundException(`Record with id ${id} does not exist`);
+      if (isFavorites) {
+        throw new HttpException(
+          'Record not found',
+          HttpStatus.UNPROCESSABLE_ENTITY,
+        );
+      } else {
+        throw new NotFoundException(`Record with id ${id} does not exist`);
+      }
     }
     return item;
   }
 
-  create(dto: CreateAlbumDTO): Album {
+  async create(dto: CreateAlbumDTO): Promise<Album> {
     if (!dto.name || !dto.year) {
       throw new BadRequestException(
         'Request body does not contain required fields (name, duration)',
       );
     }
-    const newAlbum = {
-      id: uuidv4(),
+    const newAlbum = this.albumRepository.create({
       name: dto.name,
       year: dto.year,
       artistId: dto.artistId,
-    };
-    data.albums.push(newAlbum);
-    return newAlbum;
+    });
+
+    return await this.albumRepository.save(newAlbum);
   }
 
-  update(id: string, dto: CreateAlbumDTO): Album {
+  async update(id: string, dto: Partial<CreateAlbumDTO>): Promise<Album> {
     this.validateId(id);
 
     if (!dto.name || !dto.year) {
@@ -65,31 +83,39 @@ export class AlbumService {
       throw new BadRequestException('Request body fields has wrong types');
     }
 
-    const index = data.albums.findIndex((item) => item.id === id);
-    if (index === -1) {
+    const item = await this.albumRepository.findOne({ where: { id } });
+
+    if (!item) {
       throw new NotFoundException(`Record with id ${id} does not exist`);
     }
-    data.albums[index].name = dto.name;
-    data.albums[index].year = dto.year;
-    data.albums[index].artistId = dto.artistId;
+
+    const updatedAlbum = {
+      ...item,
+      ...dto,
+    } as Album;
 
     // Return the updated user
-    return data.albums[index];
+    return await this.albumRepository.save(updatedAlbum);
   }
 
-  delete(id: string) {
+  async delete(id: string) {
     this.validateId(id);
-    const index = data.albums.findIndex((item) => item.id === id);
-    if (index !== -1) {
-      data.albums.splice(index, 1);
-      data.tracks.forEach((item) => {
-        if (item.albumId === id) {
-          item.albumId = null;
-        }
-      });
+    const item: Album = await this.albumRepository.findOneBy({ id });
+    if (item) {
+      await this.albumRepository.delete(id);
+      await this.trackService.deleteAlbumFromTrack(id);
     } else {
       throw new NotFoundException(`Record with id ${id} does not exist`);
     }
     return;
+  }
+
+  public async deleteArtistFromAlbum(id: string): Promise<UpdateResult[]> {
+    const albums: Album[] = await this.albumRepository.findBy({ artistId: id });
+    return Promise.all(
+      albums.map((item) =>
+        this.albumRepository.update(item.id, { artistId: null }),
+      ),
+    );
   }
 }

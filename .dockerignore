@@ -1,0 +1,8 @@
+.git
+tmp*
+!config.ini
+logs/
+/docs/**
+*.log
+node_modules
+dist

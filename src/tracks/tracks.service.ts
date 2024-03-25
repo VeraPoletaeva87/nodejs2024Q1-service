@@ -1,16 +1,24 @@
 import {
   BadRequestException,
+  HttpException,
+  HttpStatus,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 
 import { Track } from './track.schema';
-import { data } from 'src/data/data';
-import { v4 as uuidv4, validate } from 'uuid';
+import { validate } from 'uuid';
 import { CreateTrackDTO } from './tracks-models';
+import { Repository, UpdateResult } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class TrackService {
+  constructor(
+    @InjectRepository(Track)
+    private readonly trackRepository: Repository<Track>,
+  ) {}
+
   validateId(id: string) {
     const validId = validate(id);
     if (!validId) {
@@ -18,67 +26,87 @@ export class TrackService {
     }
   }
 
-  findAll(): Track[] {
-    return data.tracks;
+  async findAll(): Promise<Track[]> {
+    const items = await this.trackRepository.find();
+    return items;
   }
 
-  findOne(id: string): Track {
+  async findOne(id: string, isFavorites = false): Promise<Track> {
     this.validateId(id);
-
-    const item = data.tracks.find((item) => item.id === id);
+    const item: Track | null = await this.trackRepository.findOneBy({ id });
     if (!item) {
-      throw new NotFoundException(`Record with id ${id} does not exist`);
+      if (isFavorites) {
+        throw new HttpException(
+          'Record not found',
+          HttpStatus.UNPROCESSABLE_ENTITY,
+        );
+      } else {
+        throw new NotFoundException(`Record with id ${id} does not exist`);
+      }
     }
     return item;
   }
 
-  create(dto: CreateTrackDTO): Track {
+  async create(dto: CreateTrackDTO): Promise<Track> {
     if (!dto.name || !dto.duration) {
       throw new BadRequestException(
         'Request body does not contain required fields (name, duration)',
       );
     }
-    const newTrack = {
-      id: uuidv4(),
-      name: dto.name,
-      artistId: dto.artistId,
-      albumId: dto.albumId,
-      duration: dto.duration,
-    };
-    data.tracks.push(newTrack);
-    return newTrack;
+    const newTrack: Track = this.trackRepository.create(dto);
+
+    return await this.trackRepository.save(newTrack);
   }
 
-  update(id: string, dto: CreateTrackDTO): Track {
+  async update(id: string, dto: Partial<CreateTrackDTO>): Promise<Track> {
     this.validateId(id);
-
     if (!dto.name || !dto.duration) {
       throw new BadRequestException(
         'Request body does not contain required fields (name, duration)',
       );
     }
 
-    const index = data.tracks.findIndex((item) => item.id === id);
-    if (index === -1) {
+    const item: Track = await this.trackRepository.findOneBy({ id });
+    if (!item) {
       throw new NotFoundException(`Record with id ${id} does not exist`);
     }
-    data.tracks[index].name = dto.name;
-    data.tracks[index].duration = dto.duration;
-    data.tracks[index].artistId = dto.artistId;
-    data.tracks[index].albumId = dto.albumId;
+
+    Object.assign(item, CreateTrackDTO);
+    await this.trackRepository.save(item);
 
     // Return the updated user
-    return data.tracks[index];
+    return item;
   }
 
-  delete(id: string) {
+  async delete(id: string) {
     this.validateId(id);
-    const index = data.tracks.findIndex((item) => item.id === id);
-    if (index !== -1) {
-      data.tracks.splice(index, 1);
+    const item: Track = await this.trackRepository.findOneBy({ id });
+    if (item) {
+      await this.trackRepository.delete(id);
     } else {
       throw new NotFoundException(`Record with id ${id} does not exist`);
     }
-    return;
+  }
+
+  public async deleteArtistFromTrack(id: string): Promise<UpdateResult[]> {
+    const tracks: Track[] = await this.trackRepository.findBy({
+      artistId: id,
+    });
+    return Promise.all(
+      tracks.map((item) =>
+        this.trackRepository.update(item.id, { artistId: null }),
+      ),
+    );
+  }
+
+  public async deleteAlbumFromTrack(id: string): Promise<UpdateResult[]> {
+    const tracks: Track[] = await this.trackRepository.findBy({
+      albumId: id,
+    });
+    return Promise.all(
+      tracks.map((item) =>
+        this.trackRepository.update(item.id, { albumId: null }),
+      ),
+    );
   }
 }

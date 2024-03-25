@@ -18,22 +18,25 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get()
-  getAll(): User[] {
+  getAll(): Promise<User[]> {
     return this.userService.findAll();
   }
 
   @Get(':userId')
-  getById(@Param('userId') userId: string): User {
+  async findOne(@Param('userId') userId: string): Promise<User> {
     return this.userService.findOne(userId);
   }
 
   @Post()
-  create(@Body() createUserDto: CreateUserDTO): User {
+  async create(@Body() createUserDto: CreateUserDTO): Promise<User> {
     return this.userService.create(createUserDto);
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdatePasswordDto) {
+  async update(
+    @Param('id') id: string,
+    @Body() updateUserDto: UpdatePasswordDto,
+  ) {
     return this.userService.update(id, updateUserDto);
   }
 

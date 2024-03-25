@@ -1,7 +1,25 @@
-export interface Track {
-  id: string; // uuid v4
+import { Exclude } from 'class-transformer';
+import { Favorites } from 'src/favorites/favorite.schema';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+
+@Entity('track')
+export class Track {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column()
   name: string;
-  artistId: string | null; // refers to Artist
-  albumId: string | null; // refers to Album
-  duration: number; // integer number
+
+  @Column({ nullable: true })
+  artistId: string | null;
+
+  @Column({ nullable: true })
+  albumId: string | null;
+
+  @Column({ type: 'integer' })
+  duration: number;
+
+  @Exclude()
+  @ManyToOne(() => Favorites, (favorites: Favorites) => favorites.tracks)
+  favorites: Favorites;
 }

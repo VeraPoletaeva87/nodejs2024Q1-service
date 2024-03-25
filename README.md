@@ -18,42 +18,35 @@ npm install
 ```
 
 ## Running application
+Install and start Docker
 
-```
-npm start
-```
+## Start application
+
+docker compose build
+
+## Start a project
+
+docker compose -f docker-compose.yml up
+
+or
+
+docker compose up
+
+wait until server starts then run tests
+
+## Testing
+
+In a new terminal:
+
+npm run test
+
+## Stop the project
+
+docker compose down
 
 After starting the app on port (4000 as default) you can open
 in your browser OpenAPI documentation by typing http://localhost:4000/doc/.
 For more information about OpenAPI/Swagger please visit https://swagger.io/.
-
-## Testing
-
-After application running open new terminal and enter:
-
-To run all tests without authorization
-
-```
-npm run test
-```
-
-To run only one of all test suites
-
-```
-npm run test -- <path to suite>
-```
-
-To run all test with authorization
-
-```
-npm run test:auth
-```
-
-To run only specific test suite with authorization
-
-```
-npm run test:auth -- <path to suite>
-```
 
 ### Auto-fix and format
 
